@@ -868,7 +868,7 @@ class HDFStore(StringMixin):
             return s.delete(where=where, start=start, stop=stop)
 
     def append(self, key, value, format=None, append=True, columns=None,
-               dropna=None, ignore_index=False, **kwargs):
+               dropna=None, resume_index=False, **kwargs):
         """
         Append to Table in file. Node must already exist and be Table
         format.
@@ -893,8 +893,9 @@ class HDFStore(StringMixin):
         encoding     : default None, provide an encoding for strings
         dropna       : boolean, default True, do not write an ALL nan row to
             the store settable by the option 'io.hdf.dropna_table'
-        ignore_index : boolean, default False
-            If True resume the index labels. Useful for gluing together record arrays
+        resume_index : boolean, default False
+            If True, resume the current index labels. Useful for gluing together
+            record arrays
         Notes
         -----
         Does *not* check if data being appended overlaps with existing
@@ -904,19 +905,15 @@ class HDFStore(StringMixin):
             raise TypeError("columns is not a supported keyword in append, "
                             "try data_columns")
 
+        if resume_index and key in self:
+            cur_nrows = self.get_storer(key).nrows
+            value = value.set_index(value.index + cur_nrows)
+
         if dropna is None:
             dropna = get_option("io.hdf.dropna_table")
         if format is None:
             format = get_option("io.hdf.default_format") or 'table'
-           
-        if ignore_index:
-            try:
-                current_data = self.get_storer(key)
-                new_index = pd.Series(current_data.index) + current_data.nrows
-                value.set_index(new_index)
-            except KeyError:
-                pass
-            
+
         kwargs = self._validate_format(format, kwargs)
         self._write_to_group(key, value, append=append, dropna=dropna,
                              **kwargs)
