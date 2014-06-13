@@ -868,7 +868,7 @@ class HDFStore(StringMixin):
             return s.delete(where=where, start=start, stop=stop)
 
     def append(self, key, value, format=None, append=True, columns=None,
-               dropna=None, resume_index=False, **kwargs):
+               dropna=None, ignore_index=False, **kwargs):
         """
         Append to Table in file. Node must already exist and be Table
         format.
@@ -893,7 +893,7 @@ class HDFStore(StringMixin):
         encoding     : default None, provide an encoding for strings
         dropna       : boolean, default True, do not write an ALL nan row to
             the store settable by the option 'io.hdf.dropna_table'
-        resume_index : boolean, default False
+        ignore_index : boolean, default False
             If True, resume the current index labels. Useful for gluing together
             record arrays
         Notes
@@ -905,7 +905,7 @@ class HDFStore(StringMixin):
             raise TypeError("columns is not a supported keyword in append, "
                             "try data_columns")
 
-        if resume_index and key in self:
+        if ignore_index and key in self:
             cur_nrows = self.get_storer(key).nrows
             value = value.set_index(value.index + cur_nrows)
 
