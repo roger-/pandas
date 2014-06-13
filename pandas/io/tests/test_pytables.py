@@ -1407,15 +1407,15 @@ class TestHDFStore(tm.TestCase):
             expected = expected[expected.reset_index(level=['major']).index.isin(['A','B'])]
             tm.assert_frame_equal(result.to_frame(),expected)
 
-    def test_append_resume_index(self):
+    def test_append_ignore_index(self):
         df1 = DataFrame(np.random.randn(5,1),columns=['A'])
         df2 = DataFrame(np.random.randn(5,1),columns=['A'])
 
         expected = df1.append(df2, ignore_index=True)
 
         with ensure_clean_store(self.path) as store:
-            store.append('test', df1, resume_index=False)
-            store.append('test', df2, resume_index=True)
+            store.append('test', df1, ignore_index=False)
+            store.append('test', df2, ignore_index=True)
 
             result = store.get('test')
             tm.assert_frame_equal(result, expected)
